@@ -1,8 +1,5 @@
 const documentRepository = require('../repositories/documentRepository');
-
-class NotFoundError extends Error {
-  status = 404;
-}
+const { NotFoundError } = require('./errors');
 
 function registerDocument({ id, originalName, size, owner }) {
   return documentRepository.save({
@@ -19,12 +16,17 @@ function listDocuments(owner) {
 }
 
 // Documento de outro usuário é tratado como inexistente.
-function getDocumentForDownload(id, owner) {
+function findOwnedDocument(id, owner) {
   const document = documentRepository.findById(id);
   if (!document || document.owner !== owner) {
     throw new NotFoundError('Documento não encontrado');
   }
+  return document;
+}
+
+function getDocumentForDownload(id, owner) {
+  const document = findOwnedDocument(id, owner);
   return { document, filePath: documentRepository.getFilePath(id) };
 }
 
-module.exports = { NotFoundError, registerDocument, listDocuments, getDocumentForDownload };
+module.exports = { registerDocument, listDocuments, getDocumentForDownload };
