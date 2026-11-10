@@ -11,6 +11,7 @@
 // usando multer com diskStorage. Não utilize provedores externos.
 
 const express = require('express');
+const documentRoutes = require('./routes/documentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,20 @@ app.use(express.json());
 // /documents/:id/download) serão implementadas durante o Passo 2.
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+app.use(documentRoutes);
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: 'Arquivo excede o tamanho máximo permitido' });
+  }
+  if (err.status) {
+    return res.status(err.status).json({ error: err.message });
+  }
+  console.error(err);
+  res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
 if (require.main === module) {
